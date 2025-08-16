@@ -802,3 +802,13 @@ void ng_eof() {
         break;
     }
 }
+
+void ng_shift_space() {
+    raise_zmk_keycode_state_changed_from_encoded(LS(SPACE), true, timestamp);
+    raise_zmk_keycode_state_changed_from_encoded(LS(SPACE), false, timestamp);
+}
+
+void ng_shift_enter() {
+    raise_zmk_keycode_state_changed_from_encoded(LS(ENTER), true, timestamp);
+    raise_zmk_keycode_state_changed_from_encoded(LS(ENTER), false, timestamp);
+}
