@@ -62,6 +62,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define B_SLASH (1UL << 29)
 
 #define B_SPACE (1UL << 30)
+#define B_TAB (1UL << 31)
 
 static NGListArray nginput;
 static uint32_t pressed_keys = 0UL; // 押しているキーのビットをたてる
@@ -78,6 +79,7 @@ static const uint32_t ng_key[] = {
     [U - A] = B_U,     [V - A] = B_V,         [W - A] = B_W,         [X - A] = B_X,
     [Y - A] = B_Y,     [Z - A] = B_Z,         [SEMI - A] = B_SEMI,   [COMMA - A] = B_COMMA,
     [DOT - A] = B_DOT, [SLASH - A] = B_SLASH, [SPACE - A] = B_SPACE, [ENTER - A] = B_SPACE,
+    [TAB- A] = B_SPACE
 };
 
 #define KANA_MAX_LEN 6
@@ -264,6 +266,7 @@ static naginata_kanamap ngdickana[] = {
     
     // 追加
     {.shift = NONE    , .douji = B_SPACE        , .kana = {SPACE, NONE, NONE, NONE, NONE, NONE  }, .func = nofunc},
+    {.shift = NONE    , .douji = B_TAB          , .kana = {TAB, NONE, NONE, NONE, NONE, NONE    }, .func = nofunc},
     {.shift = B_SPACE , .douji = B_V            , .kana = {COMMA, ENTER, NONE, NONE, NONE, NONE }, .func = nofunc},
     {.shift = NONE    , .douji = B_Q            , .kana = {NONE, NONE, NONE, NONE, NONE, NONE   }, .func = nofunc},
     {.shift = B_SPACE , .douji = B_Q            , .kana = {NONE, NONE, NONE, NONE, NONE, NONE   }, .func = nofunc},
@@ -440,6 +443,12 @@ void ng_type(NGList *keys) {
         raise_zmk_keycode_state_changed_from_encoded(ENTER, false, ts);
         return;
     }
+    if (keys->size == 1 && keys->elements[0] == TAB) {
+        LOG_DBG(" NAGINATA type keycode 0x%02X", TAB);
+        raise_zmk_keycode_state_changed_from_encoded(TAB, true, ts);
+        raise_zmk_keycode_state_changed_from_encoded(TAB, false, ts);
+        return;
+    }
 
     uint32_t keyset = 0UL;
     for (int i = 0; i < keys->size; i++) {
@@ -490,6 +499,7 @@ bool naginata_press(struct zmk_behavior_binding *binding, struct zmk_behavior_bi
     switch (keycode) {
     case A ... Z:
     case SPACE:
+    case TAB:
     case ENTER:
     case DOT:
     case COMMA:
@@ -498,7 +508,7 @@ bool naginata_press(struct zmk_behavior_binding *binding, struct zmk_behavior_bi
         n_pressed_keys++;
         pressed_keys |= ng_key[keycode - A]; // キーの重ね合わせ
 
-        if (keycode == SPACE || keycode == ENTER) {
+        if (keycode == SPACE || keycode == TAB || keycode == ENTER) {
             NGList a;
             initializeList(&a);
             addToList(&a, keycode);
@@ -530,6 +540,7 @@ bool naginata_press(struct zmk_behavior_binding *binding, struct zmk_behavior_bi
 
         // 連続シフト
         static uint32_t rs[10][2] = {{D, F},     {C, V}, {J, K}, {M, COMMA}, {SPACE, 0},
+                                     {TAB, 0},
                                      {ENTER, 0}, {F, 0}, {V, 0}, {J, 0},     {M, 0}};
 
         uint32_t keyset = 0UL;
@@ -582,6 +593,7 @@ bool naginata_release(struct zmk_behavior_binding *binding,
     switch (keycode) {
     case A ... Z:
     case SPACE:
+    case TAB:
     case ENTER:
     case DOT:
     case COMMA:
