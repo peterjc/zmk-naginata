@@ -3,6 +3,7 @@
 #include <drivers/behavior.h>
 #include <zephyr/logging/log.h>
 
+#include <dt-bindings/zmk/keys.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/keycode_state_changed.h>
 #include <zmk/behavior.h>
